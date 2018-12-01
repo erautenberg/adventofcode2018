@@ -8,13 +8,37 @@
 <body>
   <header>
     <h1>Day 1</h1>
-    <p></p>
   </header>
+
+  <h2>Part 1</h2>
+  <p>Starting with a frequency of zero, what is the resulting frequency after all of the changes in frequency have been applied?</p>
+  <p class="answer" id="answer1"></p>
+
+  <h2>Part 2</h2>
+  <p class="answer" id="answer2"></p>
 
   <footer><ul id="nav"></ul></footer>
 
   <script>
 
+    fetch('input/1.txt')
+      .then(res => res.text())
+      .then(text => {
+        const input = text.split('\n');
+        document.getElementById('answer1').innerHTML = calculateFrequency(input, 0);
+      });
+
+    function calculateFrequency(frequencyArray, frequency) {
+      for (let i=0; i<frequencyArray.length; i++) {
+        let sign = frequencyArray[i].substring(0, 1);
+        let num = parseInt(frequencyArray[i].substring(1, frequencyArray[i].length));
+        if (sign === '-') {
+          num *= -1;
+        }
+        frequency += num;
+      }
+      return frequency;
+    }
 
 
   </script>

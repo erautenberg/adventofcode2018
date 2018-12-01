@@ -36,3 +36,7 @@ footer li {
 footer li:not(:last-of-type)::after {
     content: " - ";
 }
+
+.answer {
+    font-weight: bold;
+}
