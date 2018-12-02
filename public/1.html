@@ -15,31 +15,75 @@
   <p class="answer" id="answer1"></p>
 
   <h2>Part 2</h2>
+  <p>What is the first frequency your device reaches twice?</p>
   <p class="answer" id="answer2"></p>
 
   <footer><ul id="nav"></ul></footer>
 
   <script>
 
-    fetch('input/1.txt')
-      .then(res => res.text())
-      .then(text => {
-        const input = text.split('\n');
-        document.getElementById('answer1').innerHTML = calculateFrequency(input, 0);
-      });
+    // Part 1
+    const startingFrequency = 0;
 
-    function calculateFrequency(frequencyArray, frequency) {
-      for (let i=0; i<frequencyArray.length; i++) {
-        let sign = frequencyArray[i].substring(0, 1);
-        let num = parseInt(frequencyArray[i].substring(1, frequencyArray[i].length));
-        if (sign === '-') {
-          num *= -1;
+    function populateAnswers() {
+      fetch('input/1.txt')
+        .then(res => res.text())
+        .then(text => {
+          const input = text.split('\n');
+          // Part 1
+          document.getElementById('answer1').innerHTML =
+            calculateFrequency(startingFrequency, input);
+
+          // Part 2
+          document.getElementById('answer2').innerHTML =
+            calculateRepeatingFrequency(startingFrequency, input, [startingFrequency]);
         }
-        frequency += num;
+      );
+    }
+
+    // I forgot that parseInt can even interpret the sign,
+    // but this is what I would have done if it didn't ;)
+    // function interpretSign(str) {
+    //   let sign = frequencyChanges[i].substring(0, 1);
+    //   let num = parseInt(frequencyChanges[i].substring(1, frequencyChanges[i].length));
+    //   if (sign === '-') {
+    //     num *= -1;
+    //   }
+    //   return num;
+    // }
+
+    // Part 1
+    function calculateFrequency(frequency, frequencyChanges) {
+      for (let i=0; i<frequencyChanges.length; i++) {
+        frequency += parseInt(frequencyChanges[i]);
       }
       return frequency;
     }
 
+    // Part 2
+    function calculateRepeatingFrequency(frequency, frequencyChanges, savedFrequencies) {
+      var repeatFrequency;
+      for (let i=0; i<frequencyChanges.length; i++) {
+        frequency += parseInt(frequencyChanges[i]);
+
+        if (!repeatFrequency) {
+          if (savedFrequencies.some(f => f == frequency)) {
+            repeatFrequency = frequency;
+            break;
+          }
+          else {
+            savedFrequencies.push(frequency);
+          }
+        }
+      }
+      if (!repeatFrequency) {
+        repeatFrequency =
+          calculateRepeatingFrequency(frequency, frequencyChanges, savedFrequencies);
+      }
+      return repeatFrequency;
+    }
+
+    populateAnswers();
 
   </script>
 
