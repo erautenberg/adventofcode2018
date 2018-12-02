@@ -26,7 +26,7 @@
     const startingFrequency = 0;
 
     function populateAnswers() {
-      fetch('input/1.txt')
+      fetch('../input/1.txt')
         .then(res => res.text())
         .then(text => {
           const input = text.split('\n');
