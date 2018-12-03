@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emily's Advent of Code 2018 Solutions</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <h1>Day 2</h1>
+  </header>
+
+  <h2>Part 1</h2>
+  <p>What is the checksum for your list of box IDs?</p>
+  <p class="answer" id="answer1"></p>
+
+  <h2>Part 2</h2>
+  <p></p>
+  <p class="answer" id="answer2"></p>
+
+  <footer><ul id="nav"></ul></footer>
+
+  <script>
+
+    function populateAnswers() {
+      fetch('../input/2.txt')
+        .then(res => res.text())
+        .then(text => {
+          const input = text.split('\n');
+          // Part 1
+          document.getElementById('answer1').innerHTML = getCheckSum(getTotals(input));
+
+          // Part 2
+          // document.getElementById('answer2').innerHTML = ;
+        }
+      );
+    }
+
+    function getTotals(input) {
+      var twos = 0;
+      var threes = 0;
+      for (let i=0; i<input.length; i++) {
+        let twoApplied = false;
+        let threeApplied = false;
+        let characterObj = countCharacters(input[i]);
+        Object.keys(characterObj).forEach(key => {
+          if (characterObj[key] === 2 && !twoApplied) {
+            twos++;
+            twoApplied = true;
+          }
+          if (characterObj[key] === 3 && !threeApplied) {
+            threes++;
+            threeApplied = true;
+          }
+        });
+      }
+      return { twos: twos, threes: threes };
+    }
+
+    function getCheckSum(obj) {
+      var checkSum = 1;
+      Object.keys(obj).forEach(key => {
+        checkSum *= obj[key];
+      });
+      return checkSum;
+    }
+
+    function countCharacters(str) {
+      var characterObj = {};
+      for (let i=0; i<str.length; i++) {
+        if (characterObj[str.charAt(i)]) {
+          characterObj[str.charAt(i)] = characterObj[str.charAt(i)] + 1;
+        }
+        else {
+          characterObj[str.charAt(i)] = 1;
+        }
+      }
+      return characterObj;
+    }
+
+    populateAnswers();
+
+  </script>
+
+  <script type="text/javascript" src="../navigation.js" ></script>
+
+</body>
+</html>
