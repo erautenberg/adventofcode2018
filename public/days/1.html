@@ -28,6 +28,7 @@
         .then(res => res.text())
         .then(text => {
           const input = text.split('\n');
+
           // Part 1
           document.getElementById('answer1').innerHTML =
             calculateFrequency(startingFrequency, input);

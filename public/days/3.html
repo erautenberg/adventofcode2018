@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emily's Advent of Code 2018 Solutions</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <h1>Day 3</h1>
+  </header>
+
+  <h2>Part 1</h2>
+  <p>How many square inches of fabric are within two or more claims?</p>
+  <p class="answer" id="answer1"></p>
+
+  <h2>Part 2</h2>
+  <p></p>
+  <p class="answer" id="answer2"></p>
+
+  <footer><ul id="nav"></ul></footer>
+
+  <script>
+
+    function populateAnswers() {
+      fetch('../input/3.txt')
+        .then(res => res.text())
+        .then(text => {
+          const input = text.split('\n');
+
+          // Part 1
+          document.getElementById('answer1').innerHTML = buildFabricArray(input);
+
+          // Part 2
+          // document.getElementById('answer2').innerHTML = ;
+        }
+      );
+    }
+
+    function getClaimAttributes(fabricClaim) {
+      var claimArray = fabricClaim.split(' ');
+
+      if (claimArray.length === 4) {
+        var id = claimArray[0];
+
+        var position = claimArray[2].replace(':', '').split(',');
+        var left = parseInt(position[0]);
+        var top = parseInt(position[1]);
+
+        var dimensions = claimArray[3].split('x');
+        var width = parseInt(dimensions[0]);
+        var height = parseInt(dimensions[1]);
+
+        return { id, left, top, width, height };
+      }
+
+      return {};
+    }
+
+    function fillFabricArray(fabricClaim, fabricArray) {
+      var { id, left, top, width, height } = getClaimAttributes(fabricClaim);
+
+      for (let i=left; i < left + width; i++) {
+        for (let j=top; j < top + height; j++) {
+          if (fabricArray[i][j] === '.') {
+            fabricArray[i][j] = id;
+          }
+          else {
+            fabricArray[i][j] = 'X';
+          }
+        }
+      }
+      return fabricArray;
+    }
+
+    function countOverlaps(fabricArray) {
+      var count = 0;
+      for (let i=0; i<fabricArray.length; i++) {
+        for (let j=0; j<fabricArray[i].length; j++) {
+          if (fabricArray[i][j] === 'X') {
+            count++;
+          }
+        }
+      }
+      return count;
+    }
+
+    // NOTE: This prints the array as columns across, not rows across
+    function printArray(arr) {
+      arr[0].map((col, i) => arr.map(row => row[i]));
+      console.log(arr);
+      for (let i=0; i<arr.length; i++) {
+        let row = '';
+        for (let j=0; j<arr[i].length; j++) {
+          row += arr[i][j];
+        }
+        console.log(row);
+        console.log('\n');
+      }
+    }
+
+    function buildFabricArray(input) {
+      const fabricDimension = 1000;
+      // create a 2D array containing '.' using the denoted dimensions of the fabric (1000x1000)
+      // (trying to nest new Array inside of fill creates arrays by reference, so must use .from)
+      var fabricArray = Array.from(
+        { length: fabricDimension },
+        e => Array(fabricDimension).fill('.')
+      );
+
+      for (let i=0; i<input.length; i++) {
+        fabricArray = fillFabricArray(input[i], fabricArray);
+      }
+
+      return countOverlaps(fabricArray);
+    }
+
+    populateAnswers();
+
+  </script>
+
+  <script type="text/javascript" src="../navigation.js" ></script>
+
+</body>
+</html>
