@@ -31,7 +31,7 @@
           document.getElementById('answer1').innerHTML = getCheckSum(getTotals(input));
 
           // Part 2
-          // document.getElementById('answer2').innerHTML = ;
+          document.getElementById('answer2').innerHTML = getCommonChars(input);
         }
       );
     }
@@ -76,6 +76,67 @@
         }
       }
       return characterObj;
+    }
+
+    function calculateStringSimilarity(str1, str2) {
+      const allowedDifferences = 1;
+
+      if (str1.length && str2.length) {
+        var differences = 0;
+
+        for (let i=0; i<str1.length; i++) {
+          if (str1.charAt(i) !== str2.charAt(i)) {
+            differences++;
+          }
+          if (differences > allowedDifferences) {
+            return false;
+          }
+        }
+
+        if (differences === allowedDifferences) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function findStringPair(input) {
+      var smallerInput = input.concat();
+      var currLine = smallerInput[0];
+
+      while (currLine) {
+        let match = false;
+
+        for (let i=0; i<smallerInput.length; i++) {
+          match = calculateStringSimilarity(currLine, smallerInput[i]);
+          if (match) {
+            return [currLine, smallerInput[i]];
+          }
+        }
+
+        smallerInput.shift();
+        currLine = smallerInput[0];
+      }
+      return [];
+    }
+
+    function getCommonChars(input) {
+      var strArray = findStringPair(input);
+      var result;
+      if (strArray.length === 2) {
+        var str1 = strArray[0];
+        var str2 = strArray[1];
+        result = strArray[0];
+
+        if (str1.length === str2.length) {
+          for (let i=0; i<str1.length; i++) {
+            if (str1.charAt(i) !== str2.charAt(i)) {
+              result = result.slice(0, i) + result.slice(i+1);
+            }
+          }
+        }
+      }
+      return result;
     }
 
     populateAnswers();
