@@ -28,11 +28,13 @@
         .then(text => {
           const input = text.split('\n');
 
+          var claimIdsObj = buildFabricArray(input);
+
           // Part 1
-          document.getElementById('answer1').innerHTML = buildFabricArray(input);
+          document.getElementById('answer1').innerHTML = countOverlaps(claimIdsObj.fabricArray);
 
           // Part 2
-          // document.getElementById('answer2').innerHTML = ;
+          document.getElementById('answer2').innerHTML = getUnInterrupted(claimIdsObj);
         }
       );
     }
@@ -41,7 +43,7 @@
       var claimArray = fabricClaim.split(' ');
 
       if (claimArray.length === 4) {
-        var id = claimArray[0];
+        var id = claimArray[0].replace('#', '');
 
         var position = claimArray[2].replace(':', '').split(',');
         var left = parseInt(position[0]);
@@ -57,20 +59,26 @@
       return {};
     }
 
-    function fillFabricArray(fabricClaim, fabricArray) {
+    function fillFabricArray(fabricClaim, claimIdsObj) {
       var { id, left, top, width, height } = getClaimAttributes(fabricClaim);
 
       for (let i=left; i < left + width; i++) {
         for (let j=top; j < top + height; j++) {
-          if (fabricArray[i][j] === '.') {
-            fabricArray[i][j] = id;
+          if (claimIdsObj.fabricArray[i][j] === '.') {
+            claimIdsObj.fabricArray[i][j] = id;
+            if (!claimIdsObj[id]) {
+              claimIdsObj[id] = false;
+            }
           }
           else {
-            fabricArray[i][j] = 'X';
+            claimIdsObj[claimIdsObj.fabricArray[i][j]] = true;
+            claimIdsObj[id] = true;
+            claimIdsObj.fabricArray[i][j] = 'X';
           }
         }
       }
-      return fabricArray;
+      return claimIdsObj;
+      // return { ...claimIdsObj, [ id ]: interrupt, fabricArray: claimIdsObj.fabricArray };
     }
 
     function countOverlaps(fabricArray) {
@@ -108,11 +116,19 @@
         e => Array(fabricDimension).fill('.')
       );
 
+      var claimIdsObj = { fabricArray };
+
       for (let i=0; i<input.length; i++) {
-        fabricArray = fillFabricArray(input[i], fabricArray);
+        claimIdsObj = fillFabricArray(input[i], claimIdsObj);
       }
 
-      return countOverlaps(fabricArray);
+      return claimIdsObj;
+    }
+
+    function getUnInterrupted(claimIdsObj) {
+      var ids = Object.keys(claimIdsObj);
+      var uninterruptedId = ids.find(key => claimIdsObj[key] === false);
+      return uninterruptedId;
     }
 
     populateAnswers();
