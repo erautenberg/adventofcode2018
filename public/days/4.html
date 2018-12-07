@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emily's Advent of Code 2018 Solutions</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <h1>Day 4</h1>
+  </header>
+
+  <h2>Part 1</h2>
+  <p>What is the ID of the guard you chose multiplied by the minute you chose?</p>
+  <p class="answer" id="answer1"></p>
+
+  <h2>Part 2</h2>
+  <p></p>
+  <p class="answer" id="answer2"></p>
+
+  <footer><ul id="nav"></ul></footer>
+
+  <script>
+
+    function populateAnswers() {
+      fetch('../input/4.txt')
+        .then(res => res.text())
+        .then(text => {
+          const input = text.split('\n');
+
+          const alphaInput = input.sort();
+          var organizedInput = organizeData(alphaInput);
+          var chart = createChart(organizedInput);
+          chart = countMinutesAsleep(chart);
+          var sleepiestGuard = getGuardOfHighestMinutes(chart);
+          var sleepiestMinute = getGuardsSleepiestMinute(chart[sleepiestGuard]);
+
+          // Part 1
+          document.getElementById('answer1').innerHTML = sleepiestGuard * sleepiestMinute;
+
+          // Part 2
+          // document.getElementById('answer2').innerHTML = ;
+        }
+      );
+    }
+
+    function organizeData(alphaInput) {
+      var objArray = [];
+      var regex = /\[\d+-(\d\d-\d\d) (\d\d:\d\d)\] (Guard #(\d*))* *(.*)/;
+
+      for (let i=0; i<alphaInput.length; i++) {
+        let matches = alphaInput[i].match(regex);
+        objArray.push({
+          date: matches[1],
+          time: matches[2],
+          guardId: matches[4],
+          action: matches[5]
+        });
+      }
+
+      return objArray;
+    }
+
+    function createChart(organizedInput) {
+      var chart = {};
+      var currentGuard;
+
+      for (let i=0; i<organizedInput.length; i++) {
+        if (organizedInput[i].guardId) {
+          let formattedDate = organizedInput[i].date;
+          currentGuard = organizedInput[i].guardId;
+
+          // if the guard started the shift before midnight
+          if (organizedInput[i].time > '00:59') {
+            let d = new Date(formattedDate);
+            d.setDate(d.getDate() + 1);
+            formattedDate =
+              `${ d.getMonth() + 1 < 10 ? '0' : '' }${ d.getMonth() + 1 }-${ d.getDate() < 10 ? '0' : '' }${d.getDate()}`;
+          }
+          chart[currentGuard] = {
+            ...chart[currentGuard],
+            [ formattedDate ]: new Array(60).fill('.')
+          }
+        }
+        else if (organizedInput[i].action === 'falls asleep') {
+          let minutes = parseInt(organizedInput[i].time.substring(3, 5));
+          if (chart[currentGuard]) {
+            if (chart[currentGuard][organizedInput[i].date]) {
+              chart[currentGuard][organizedInput[i].date][minutes] = '#';
+            }
+          }
+        }
+        else if (organizedInput[i].action === 'wakes up') {
+          let minutes = parseInt(organizedInput[i].time.substring(3, 5));
+          if (chart[currentGuard]) {
+            if (chart[currentGuard][organizedInput[i].date]) {
+              let sleepArray = chart[currentGuard][organizedInput[i].date];
+              let lastTimeAsleep;
+              for (let j=sleepArray.length - 1; j>=0; j--) {
+                if (sleepArray[j] === '#') {
+                  lastTimeAsleep = j;
+                  break;
+                }
+              }
+              for (let k=lastTimeAsleep; k<minutes; k++) {
+                sleepArray[k] = '#';
+              }
+            }
+          }
+        }
+      }
+      return chart;
+    }
+
+    function countMinutesAsleep(chart) {
+      var guardIds = Object.keys(chart);
+      guardIds.forEach(id => {
+        let dates = Object.keys(chart[id]);
+        let minutesAsleep = 0;
+        dates.forEach(date => {
+          minutesAsleep += chart[id][date].filter(minute => minute == '#').length;
+        });
+        chart[id].minutesAsleep = minutesAsleep;
+      });
+
+      return chart;
+    }
+
+    function getGuardOfHighestMinutes(chartObj) {
+      var guardIds = Object.keys(chartObj);
+      var highestMinutes = 0;
+      var highestGuardId;
+      guardIds.forEach(id => {
+        if (chartObj[id].minutesAsleep > highestMinutes) {
+          highestMinutes = chartObj[id].minutesAsleep;
+          highestGuardId = id;
+        }
+      });
+
+      return highestGuardId;
+    }
+
+    function getGuardsSleepiestMinute(guard) {
+      var timesAsleepPerMinute = new Array(60).fill(0);
+
+      var dates = Object.keys(guard);
+      dates.forEach(date => {
+        if (guard[date].length) {
+          guard[date].forEach((minute, index) => {
+            if (minute === '#') {
+              timesAsleepPerMinute[index] = timesAsleepPerMinute[index] + 1;
+            }
+          });
+        }
+      });
+
+      var sleepiestMinute = timesAsleepPerMinute.indexOf(Math.max(...timesAsleepPerMinute));
+
+      return sleepiestMinute;
+    }
+
+    populateAnswers();
+
+  </script>
+
+  <script type="text/javascript" src="../navigation.js" ></script>
+
+</body>
+</html>
