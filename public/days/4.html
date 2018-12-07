@@ -11,11 +11,11 @@
   </header>
 
   <h2>Part 1</h2>
-  <p>What is the ID of the guard you chose multiplied by the minute you chose?</p>
+  <p>Strategy 1: Find the guard that has the most minutes asleep. What minute does that guard spend asleep the most? What is the ID of the guard you chose multiplied by the minute you chose?</p>
   <p class="answer" id="answer1"></p>
 
   <h2>Part 2</h2>
-  <p></p>
+  <p>Strategy 2: Of all guards, which guard is most frequently asleep on the same minute? What is the ID of the guard you chose multiplied by the minute you chose?</p>
   <p class="answer" id="answer2"></p>
 
   <footer><ul id="nav"></ul></footer>
@@ -32,14 +32,17 @@
           var organizedInput = organizeData(alphaInput);
           var chart = createChart(organizedInput);
           chart = countMinutesAsleep(chart);
-          var sleepiestGuard = getGuardOfHighestMinutes(chart);
-          var sleepiestMinute = getGuardsSleepiestMinute(chart[sleepiestGuard]);
 
           // Part 1
+          var sleepiestGuard = getGuardOfHighestMinutes(chart);
+          var sleepiestMinute = getGuardsSleepiestMinute(chart[sleepiestGuard]).sleepiestMinute;
           document.getElementById('answer1').innerHTML = sleepiestGuard * sleepiestMinute;
 
           // Part 2
-          // document.getElementById('answer2').innerHTML = ;
+          chart = getEachGuardsSleepiestMinute(chart);
+          var consistentSleepiestGuard = getGuardOfHighestTimes(chart);
+          document.getElementById('answer2').innerHTML =
+            consistentSleepiestGuard * chart[consistentSleepiestGuard].sleepiest.sleepiestMinute;
         }
       );
     }
@@ -156,7 +159,30 @@
 
       var sleepiestMinute = timesAsleepPerMinute.indexOf(Math.max(...timesAsleepPerMinute));
 
-      return sleepiestMinute;
+      return { sleepiestMinute, numberOfTimesAsleep: timesAsleepPerMinute[sleepiestMinute] };
+    }
+
+    function getEachGuardsSleepiestMinute(chartObj) {
+      var guardIds = Object.keys(chartObj);
+      guardIds.forEach(id => {
+        chartObj[id].sleepiest = getGuardsSleepiestMinute(chartObj[id]);
+      });
+
+      return chartObj;
+    }
+
+    function getGuardOfHighestTimes(chartObj) {
+      var guardIds = Object.keys(chartObj);
+      var highestTimes = 0;
+      var highestGuardId;
+      guardIds.forEach(id => {
+        if (chartObj[id].sleepiest.numberOfTimesAsleep > highestTimes) {
+          highestTimes = chartObj[id].sleepiest.numberOfTimesAsleep;
+          highestGuardId = id;
+        }
+      });
+
+      return highestGuardId;
     }
 
     populateAnswers();
