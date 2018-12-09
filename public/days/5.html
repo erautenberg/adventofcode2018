@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emily's Advent of Code 2018 Solutions</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <h1>Day 5</h1>
+  </header>
+
+  <h2>Part 1</h2>
+  <p>How many units remain after fully reacting the polymer you scanned?</p>
+  <p class="answer" id="answer1"></p>
+
+  <h2>Part 2</h2>
+  <p></p>
+  <p class="answer" id="answer2"></p>
+
+  <footer><ul id="nav"></ul></footer>
+
+  <script>
+
+    function populateAnswers() {
+      fetch('../input/5.txt')
+        .then(res => res.text())
+        .then(text => {
+
+          // Part 1
+          var polymer = replaceReactions(text);
+          while (polymer.includes('0')) {
+            polymer = replaceReactions(removeReactions(polymer));
+          }
+          poylmer = replaceReactions(polymer);
+
+          document.getElementById('answer1').innerHTML = polymer.length;
+
+          // Part 2
+          // document.getElementById('answer2').innerHTML = ;
+        }
+      );
+    }
+
+    function shouldRemoveUnits(unit1, unit2) {
+      if (unit1 !== unit2 && (unit1.toLowerCase() === unit2 || unit1 === unit2.toLowerCase())) {
+        return true;
+      }
+      return false;
+    }
+
+    function replaceAt(str, pos, newChar) {
+      return str.substr(0, pos) + newChar + str.substr(pos+1);
+    }
+
+    function replaceReactions(polymer) {
+      for (let i=0; i<polymer.length - 1; i++) {
+        let shouldRemove = shouldRemoveUnits(polymer.charAt(i), polymer.charAt(i+1));
+        if (shouldRemove) {
+          polymer = replaceAt(polymer, i, '0');
+          polymer = replaceAt(polymer, i+1, '0');
+        }
+      }
+      return polymer;
+    }
+
+    function removeReactions(polymer) {
+      return polymer.replace(/0/g, '');
+    }
+
+    populateAnswers();
+
+  </script>
+
+  <script type="text/javascript" src="../navigation.js" ></script>
+
+</body>
+</html>
