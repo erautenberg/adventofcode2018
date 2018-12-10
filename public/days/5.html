@@ -15,7 +15,7 @@
   <p class="answer" id="answer1"></p>
 
   <h2>Part 2</h2>
-  <p></p>
+  <p>What is the length of the shortest polymer you can produce by removing all units of exactly one type and fully reacting the result?</p>
   <p class="answer" id="answer2"></p>
 
   <footer><ul id="nav"></ul></footer>
@@ -37,7 +37,7 @@
           document.getElementById('answer1').innerHTML = polymer.length;
 
           // Part 2
-          // document.getElementById('answer2').innerHTML = ;
+          document.getElementById('answer2').innerHTML = getLowestLength(countLengths(text));
         }
       );
     }
@@ -66,6 +66,39 @@
 
     function removeReactions(polymer) {
       return polymer.replace(/0/g, '');
+    }
+
+    function removeCharacter(polymer, charToRemove) {
+      return polymer.replace(new RegExp(charToRemove, 'g'), '');
+    }
+
+    function countLengths(polymer) {
+      var alphabetLengths = {};
+      for (let i=0; i<26; i++) {
+        var letter = (i + 10).toString(36);
+        var newPolymer = removeCharacter(poylmer, letter);
+        newPolymer = removeCharacter(newPolymer, letter.toUpperCase());
+        newPolymer = replaceReactions(newPolymer);
+        while (newPolymer.includes('0')) {
+          newPolymer = replaceReactions(removeReactions(newPolymer));
+        }
+        alphabetLengths[letter] = newPolymer.length;
+      }
+      return alphabetLengths;
+    }
+
+    function getLowestLength(alphabetLengths) {
+      letters = Object.keys(alphabetLengths);
+      var minLetterLength;
+      letters.forEach(letter => {
+        if (minLetterLength === undefined) {
+          minLetterLength = alphabetLengths[letter];
+        }
+        else if (alphabetLengths[letter] < minLetterLength) {
+          minLetterLength = alphabetLengths[letter];
+        }
+      });
+      return minLetterLength;
     }
 
     populateAnswers();
