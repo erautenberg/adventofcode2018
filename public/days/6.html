@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emily's Advent of Code 2018 Solutions</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <h1>Day 6</h1>
+  </header>
+
+  <h2>Part 1</h2>
+  <p>What is the size of the largest area that isn't infinite?</p>
+  <p class="answer" id="answer1"></p>
+
+  <h2>Part 2</h2>
+  <p></p>
+  <p class="answer" id="answer2"></p>
+
+  <footer><ul id="nav"></ul></footer>
+
+  <script>
+
+    function populateAnswers() {
+      fetch('../input/6.txt')
+        .then(res => res.text())
+        .then(text => {
+          const input = text.split('\n');
+
+          // Part 1
+          var coordinatesObj = organizeCoordinates(input);
+          var graph = buildGraph(coordinatesObj);
+          graph = graphClosestLocations(graph, coordinatesObj);
+          var finiteLocations = removeInfinites(graph, coordinatesObj);
+          var largestArea = getLocationWithLargestArea(graph, finiteLocations);
+
+          document.getElementById('answer1').innerHTML = largestArea;
+
+          // Part 2
+          // document.getElementById('answer2').innerHTML = ;
+        }
+      );
+    }
+
+    function organizeCoordinates(input) {
+      var coordinatesObj = {};
+      var offset = 0;
+      for (let i=0, j=0; i<input.length; i++, j++) {
+        let coordinateArray = input[i].split(', ');
+
+        if (j >= 26) {
+          j = 0;
+        }
+        var letter = (j + 10).toString(36);
+
+        locationName = letter + offset;
+        if (coordinatesObj[locationName.toUpperCase()]) {
+          offset++;
+          locationName = letter + offset;
+        }
+        locationName = locationName.toUpperCase();
+
+        coordinatesObj[locationName] = {
+          x: parseInt(coordinateArray[0]),
+          y: parseInt(coordinateArray[1])
+        };
+      }
+      return coordinatesObj;
+    }
+
+    function getDimensions(coordinatesObj) {
+      var locations = Object.keys(coordinatesObj);
+      var maxX;
+      var maxY;
+      locations.forEach(location => {
+        if (maxX === undefined) {
+          maxX = coordinatesObj[location].x;
+        }
+        if (maxY === undefined) {
+          maxY = coordinatesObj[location].y;
+        }
+        if (coordinatesObj[location].x > maxX) {
+          maxX = coordinatesObj[location].x;
+        }
+        if (coordinatesObj[location].y > maxY) {
+          maxY = coordinatesObj[location].y;
+        }
+      });
+      return { x: maxX+1, y: maxY+1 };
+    }
+
+    function buildGraph(coordinatesObj) {
+      var { x, y } = getDimensions(coordinatesObj);
+
+      var graph = Array.from(
+        { length: x },
+        e => Array(y).fill('.')
+      );
+
+      var locations = Object.keys(coordinatesObj);
+      locations.forEach(location => {
+        graph[coordinatesObj[location].x][coordinatesObj[location].y] = location;
+      });
+
+      return graph;
+    }
+
+    function getManhattanDistance(graphCoordinate, location) {
+      var xDist = Math.abs(graphCoordinate.x - location.x);
+      var yDist = Math.abs(graphCoordinate.y - location.y);
+      return xDist + yDist;
+    }
+
+    function graphClosestLocations(originalGraph, coordinatesObj) {
+      var graph = JSON.parse(JSON.stringify(originalGraph));
+      var locations = Object.keys(coordinatesObj);
+
+      for (let i=0; i<graph.length; i++) {
+        for (let j=0; j<graph[i].length; j++) {
+          if (graph[i][j] === '.') {
+            let closestLocation, closestLocationsDistance;
+
+            locations.forEach(location => {
+              let distance = getManhattanDistance( {x: i, y: j }, coordinatesObj[location]);
+              if ((distance < closestLocationsDistance) ||
+              (closestLocation === undefined && closestLocationsDistance === undefined)) {
+                closestLocation = location.toLowerCase();
+                closestLocationsDistance = distance;
+              }
+              else if (distance === closestLocationsDistance) {
+                closestLocation = '.';
+              }
+            });
+
+            graph[i][j] = closestLocation;
+          }
+        }
+      }
+      return graph;
+    }
+
+    function removeInfinites(graph, coordinatesObj) {
+      var finiteLocations = JSON.parse(JSON.stringify(coordinatesObj));
+
+      // go across the top
+      for (let i=0; i<graph[0].length; i++) {
+        let locationName = graph[0][i];
+        delete finiteLocations[locationName.toUpperCase()];
+      }
+      // go across the bottom
+      for (let i=0; i<graph[graph.length - 1].length; i++) {
+        let locationName = graph[graph.length - 1][i];
+        delete finiteLocations[locationName.toUpperCase()];
+      }
+      // go down the left
+      for (let i=0; i<graph.length; i++) {
+        let locationName = graph[i][0];
+        delete finiteLocations[locationName.toUpperCase()];
+      }
+      // go down the right
+      for (let i=0; i<graph.length; i++) {
+        let locationName = graph[i][graph[i].length - 1];
+        delete finiteLocations[locationName.toUpperCase()];
+      }
+
+      return finiteLocations;
+    }
+
+    function countOccurances(graph, locationName) {
+      var count = 0;
+      for (let i=0; i<graph.length; i++) {
+        for (let j=0; j<graph[i].length; j++) {
+          if (graph[i][j].toUpperCase() === locationName) {
+            count++;
+          }
+        }
+      }
+      return count;
+    }
+
+    function getLocationWithLargestArea(graph, finiteLocations) {
+      var largestArea, largestAreaName;
+
+      var locations = Object.keys(finiteLocations);
+      locations.forEach(location => {
+        let count = countOccurances(graph, location);
+
+        if ((largestArea === undefined && largestAreaName === undefined) || count > largestArea) {
+          largestArea = count;
+          largestAreaName = location;
+        }
+      });
+
+      return largestArea;
+    }
+
+    populateAnswers();
+
+  </script>
+
+  <script type="text/javascript" src="../navigation.js" ></script>
+
+</body>
+</html>
