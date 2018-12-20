@@ -41,8 +41,8 @@
           // Part 2
           const distance = 10000;
           var regionGraphObject = graphDistances(graph, coordinatesObj);
-          var regionGraph = graphLessThanDistance(regionGraphObject, graph, distance);
-          var regionSize = getRegionSize(regionGraph);
+          var distancesGraph = graphLessThanDistance(regionGraphObject, graph, distance);
+          var regionSize = getRegionSize(distancesGraph);
 
           document.getElementById('answer2').innerHTML = regionSize;
         }
@@ -220,29 +220,23 @@
 
       for (let i=0; i<graph.length; i++) {
         for (let j=0; j<graph[i].length; j++) {
-          if (typeof graph[i][j] !== 'object') {
-            graph[i][j] = { letter: graph[i][j] };
-          }
+          graph[i][j] = 0;
           locations.forEach(location => {
-            graph[i][j] = {
-              ...graph[i][j],
-              [location]: getManhattanDistance({ x: i, y: j }, coordinatesObj[location])
-            };
+            graph[i][j] += getManhattanDistance({ x: i, y: j }, coordinatesObj[location]);
           });
-          graph[i][j].total = getTotalDistance(graph[i][j]);
         }
       }
 
       return graph;
     }
 
-    function graphLessThanDistance(regionGraphObject, originalGraph, distance) {
+    function graphLessThanDistance(distancesGraph, originalGraph, distance) {
       var graph = JSON.parse(JSON.stringify(originalGraph));
 
       for (let i=0; i<graph.length; i++) {
         for (let j=0; j<graph[i].length; j++) {
-          if (regionGraphObject[i][j]) {
-            if (regionGraphObject[i][j].total < distance) {
+          if (distancesGraph[i][j]) {
+            if (distancesGraph[i][j] < distance) {
               graph[i][j] = '#';
             }
           }
