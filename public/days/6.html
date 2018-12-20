@@ -15,7 +15,7 @@
   <p class="answer" id="answer1"></p>
 
   <h2>Part 2</h2>
-  <p></p>
+  <p>What is the size of the region containing all locations which have a total distance to all given coordinates of less than 10000?</p>
   <p class="answer" id="answer2"></p>
 
   <footer><ul id="nav"></ul></footer>
@@ -28,17 +28,23 @@
         .then(text => {
           const input = text.split('\n');
 
+          const coordinatesObj = organizeCoordinates(input);
+          const graph = buildGraph(coordinatesObj);
+
           // Part 1
-          var coordinatesObj = organizeCoordinates(input);
-          var graph = buildGraph(coordinatesObj);
-          graph = graphClosestLocations(graph, coordinatesObj);
-          var finiteLocations = removeInfinites(graph, coordinatesObj);
-          var largestArea = getLocationWithLargestArea(graph, finiteLocations);
+          var graphClosest = graphClosestLocations(graph, coordinatesObj);
+          var finiteLocations = removeInfinites(graphClosest, coordinatesObj);
+          var largestArea = getLocationWithLargestArea(graphClosest, finiteLocations);
 
           document.getElementById('answer1').innerHTML = largestArea;
 
           // Part 2
-          // document.getElementById('answer2').innerHTML = ;
+          const distance = 10000;
+          var regionGraphObject = graphDistances(graph, coordinatesObj);
+          var regionGraph = graphLessThanDistance(regionGraphObject, graph, distance);
+          var regionSize = getRegionSize(regionGraph);
+
+          document.getElementById('answer2').innerHTML = regionSize;
         }
       );
     }
@@ -122,7 +128,7 @@
             let closestLocation, closestLocationsDistance;
 
             locations.forEach(location => {
-              let distance = getManhattanDistance( {x: i, y: j }, coordinatesObj[location]);
+              let distance = getManhattanDistance({ x: i, y: j }, coordinatesObj[location]);
               if ((distance < closestLocationsDistance) ||
               (closestLocation === undefined && closestLocationsDistance === undefined)) {
                 closestLocation = location.toLowerCase();
@@ -193,6 +199,71 @@
       });
 
       return largestArea;
+    }
+
+    function getTotalDistance(locationObj) {
+      var locationKeys = Object.keys(locationObj);
+      var totalDistance = 0;
+
+      locationKeys.forEach(key => {
+        if (key !== 'letter') {
+          totalDistance += locationObj[key];
+        }
+      });
+
+      return totalDistance;
+    }
+
+    function graphDistances(originalGraph, coordinatesObj) {
+      var graph = JSON.parse(JSON.stringify(originalGraph));
+      var locations = Object.keys(coordinatesObj);
+
+      for (let i=0; i<graph.length; i++) {
+        for (let j=0; j<graph[i].length; j++) {
+          if (typeof graph[i][j] !== 'object') {
+            graph[i][j] = { letter: graph[i][j] };
+          }
+          locations.forEach(location => {
+            graph[i][j] = {
+              ...graph[i][j],
+              [location]: getManhattanDistance({ x: i, y: j }, coordinatesObj[location])
+            };
+          });
+          graph[i][j].total = getTotalDistance(graph[i][j]);
+        }
+      }
+
+      return graph;
+    }
+
+    function graphLessThanDistance(regionGraphObject, originalGraph, distance) {
+      var graph = JSON.parse(JSON.stringify(originalGraph));
+
+      for (let i=0; i<graph.length; i++) {
+        for (let j=0; j<graph[i].length; j++) {
+          if (regionGraphObject[i][j]) {
+            if (regionGraphObject[i][j].total < distance) {
+              graph[i][j] = '#';
+            }
+          }
+        }
+      }
+
+      return graph;
+    }
+
+    function getRegionSize(graph) {
+      var total = 0;
+
+      for (let i=0; i<graph.length; i++) {
+        for (let j=0; j<graph[i].length; j++) {
+          if (graph[i][j] === '#') {
+            total++;
+          }
+        }
+      }
+
+      return total;
     }
 
     populateAnswers();
