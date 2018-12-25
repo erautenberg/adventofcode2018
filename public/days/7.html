@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Emily's Advent of Code 2018 Solutions</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <h1>Day 7</h1>
+  </header>
+
+  <h2>Part 1</h2>
+  <p>In what order should the steps in your instructions be completed?</p>
+  <p class="answer" id="answer1"></p>
+
+  <h2>Part 2</h2>
+  <p>With 5 workers and the 60+ second step durations described above, how long will it take to complete all of the steps?</p>
+  <p class="answer" id="answer2"></p>
+
+  <footer><ul id="nav"></ul></footer>
+
+  <script>
+
+    function populateAnswers() {
+      fetch('../input/7.txt')
+        .then(res => res.text())
+        .then(text => {
+          const input = text.split('\n');
+          const secondsToComplete = 60;
+          var dependencyObj = getDependencies(input, secondsToComplete);
+
+          // Part 1
+          document.getElementById('answer1').innerHTML = getOrder(dependencyObj);
+
+          // Part 2
+          document.getElementById('answer2').innerHTML = printJobLog(dependencyObj, 5);
+        }
+      );
+    }
+
+    function getDependencies(input, secondsToComplete) {
+      var dependencyObj = {};
+      var regex = /Step (\w) must be finished before step (\w) can begin./;
+
+      input.forEach(line => {
+        let matches = regex.exec(line);
+
+        if (matches.length === 3) {
+          // add both the letters to the object so that in the end,
+          // the letter with an empty array can quickly be found as the starting point
+          if (!dependencyObj[matches[1]]) {
+            dependencyObj[matches[1]] = {
+              dependencies: [],
+              secondsToComplete: (matches[1].charCodeAt(0) - 64) + secondsToComplete,
+              jobStarted: false
+            };
+          }
+          if (!dependencyObj[matches[2]]) {
+            dependencyObj[matches[2]] = {
+              dependencies: [],
+              secondsToComplete: (matches[2].charCodeAt(0) - 64) + secondsToComplete,
+              jobStarted: false
+            };
+          }
+
+          dependencyObj[matches[2]].dependencies.push(matches[1]);
+        }
+      });
+
+      return dependencyObj;
+    }
+
+    // remove each first letter and keep looping through until finished
+    function removeStepFromAll(stepToRemove, dependencyObj) {
+      delete dependencyObj[stepToRemove];
+      var steps = Object.keys(dependencyObj);
+
+      steps.forEach(step => {
+        let index = dependencyObj[step].dependencies.indexOf(stepToRemove);
+        if (index >= 0) {
+          dependencyObj[step].dependencies.splice(index, 1);
+        }
+      });
+
+      return dependencyObj;
+    }
+
+    function getNextStep(dependencyObj) {
+      var nextStep;
+      var steps = Object.keys(dependencyObj);
+
+      steps.forEach(step => {
+        if (dependencyObj[step].dependencies.length === 0) {
+          if (!nextStep || step < nextStep) {
+            nextStep = step;
+          }
+        }
+      });
+
+      return nextStep;
+    }
+
+    function getNextSteps(dependencyObj, notStarted) {
+      var nextSteps = [];
+      var steps = Object.keys(dependencyObj);
+
+      steps.forEach(step => {
+        if (dependencyObj[step].dependencies.length === 0) {
+          if (![step].jobStarted) {
+            nextSteps.push(step);
+          }
+        }
+      });
+
+      return nextSteps.sort();
+    }
+
+    function getOrder(originalDependencyObj) {
+      var dependencyObj = JSON.parse(JSON.stringify(originalDependencyObj));
+      var order = '';
+      var nextStep = getNextStep(dependencyObj);
+
+      while (nextStep !== undefined) {
+        order += nextStep;
+        dependencyObj = removeStepFromAll(nextStep, dependencyObj);
+        nextStep = getNextStep(dependencyObj);
+      }
+
+      return order;
+    }
+
+    function printJobLog(originalDependencyObj, numberOfWorkers) {
+      var dependencyObj = JSON.parse(JSON.stringify(originalDependencyObj));
+      var steps = Object.keys(dependencyObj);
+
+      var workerArray = Array(numberOfWorkers).fill('.');
+      var seconds = 0;
+      var order = '';
+      var cont = true;
+
+      var nextSteps = getNextSteps(dependencyObj);
+      while (workerArray.some(task => task === '.') && nextSteps.length > 0) {
+        if (!workerArray.some(task => task === nextSteps[0])) {
+          workerArray[workerArray.indexOf('.')] = nextSteps[0];
+          dependencyObj[nextSteps[0]].jobStarted = true;
+        }
+        nextSteps.shift();
+      }
+
+      var progressString = `Second   `;
+      workerArray.forEach((worker, index) => {
+        progressString += `W${index}       `;
+      });
+      progressString += 'Done\n';
+
+      while (cont) {
+        progressString += `${seconds}        `;
+        workerArray.forEach(worker => {
+          progressString += `${worker}        `;
+        });
+        progressString += `${order}\n`;
+
+        if (workerArray.every( v => v === '.' )) {
+          cont = false;
+        }
+
+        steps.forEach(step => {
+          if (dependencyObj[step]) {
+            if (dependencyObj[step].jobStarted) {
+              dependencyObj[step].secondsToComplete = dependencyObj[step].secondsToComplete - 1;
+            }
+            if (dependencyObj[step].secondsToComplete === 0) {
+              order += step;
+              dependencyObj = removeStepFromAll(step, dependencyObj);
+              workerArray[workerArray.indexOf(step)] = '.';
+            }
+          }
+        });
+
+        nextSteps = getNextSteps(dependencyObj);
+        while (workerArray.some(task => task === '.') && nextSteps.length > 0) {
+          if (!workerArray.some(task => task === nextSteps[0])) {
+            workerArray[workerArray.indexOf('.')] = nextSteps[0];
+            dependencyObj[nextSteps[0]].jobStarted = true;
+          }
+          nextSteps.shift();
+        }
+
+        seconds++;
+      }
+
+      // console.log(progressString);
+      return seconds-1;
+    }
+
+    populateAnswers();
+
+  </script>
+
+  <script type="text/javascript" src="../navigation.js" ></script>
+
+</body>
+</html>
